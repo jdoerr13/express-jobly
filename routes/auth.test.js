@@ -16,8 +16,8 @@ beforeEach(commonBeforeEach);
 afterEach(commonAfterEach);
 afterAll(commonAfterAll);
 
-/************************************** POST /auth/token */
 
+/************************************** POST /auth/token */
 describe("POST /auth/token", function () {
   test("works", async function () {
     const resp = await request(app)
@@ -71,8 +71,8 @@ describe("POST /auth/token", function () {
   });
 });
 
-/************************************** POST /auth/register */
 
+/************************************** POST /auth/register */
 describe("POST /auth/register", function () {
   test("works for anon", async function () {
     const resp = await request(app)

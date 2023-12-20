@@ -19,8 +19,8 @@ afterAll(commonAfterAll);//Jest, the afterEach and afterAll functions are recogn
 // afterAll is executed once after all tests in the file have run.
 // These functions are not executed immediately when they're encountered in the code. Instead, they're registered with the framework to run at these specific points in the test lifecycle, ensuring proper cleanup and resource management.
 
-/************************************** create */
 
+/************************************** create */
 describe("create", function () {
   const newCompany = {
     handle: "new",
@@ -60,8 +60,8 @@ describe("create", function () {
   });
 });
 
-/************************************** findAll */
 
+/************************************** findAll */
 describe("findAll", function () {
   test("works: no filter", async function () {
     let companies = await Company.findAll();
@@ -126,8 +126,8 @@ describe("findAll with filters", function () {
   });
 });
 
-/************************************** get */
 
+/************************************** get */
 describe("get", function () {
   test("works", async function () {
     let company = await Company.get("c1");
@@ -137,6 +137,7 @@ describe("get", function () {
       description: "Desc1",
       numEmployees: 1,
       logoUrl: "http://c1.img",
+      jobs: expect.any(Array),
     });
   });
 
@@ -150,8 +151,8 @@ describe("get", function () {
   });
 });
 
-/************************************** update */
 
+/************************************** update */
 describe("update", function () {
   const updateData = {
     name: "New",
@@ -226,8 +227,8 @@ describe("update", function () {
   });
 });
 
-/************************************** remove */
 
+/************************************** remove */
 describe("remove", function () {
   test("works", async function () {
     await Company.remove("c1");

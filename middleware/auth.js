@@ -44,7 +44,7 @@ function ensureLoggedIn(req, res, next) {
 
 //PART 3: CHANGE AUTH
 function ensureAdmin(req, res, next) {
-  if (!req.user || !req.user.isAdmin) {
+  if (!res.locals.user || !res.locals.user.isAdmin) {
     return res.status(403).json({ error: "Must be an admin to access." });
   }
   return next();
@@ -53,5 +53,5 @@ function ensureAdmin(req, res, next) {
 module.exports = {
   authenticateJWT,
   ensureLoggedIn,
-  ensureAdmin
+  ensureAdmin,
 };

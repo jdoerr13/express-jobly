@@ -5,6 +5,7 @@ const { UnauthorizedError } = require("../expressError");
 const {
   authenticateJWT,
   ensureLoggedIn,
+  ensureAdmin,
 } = require("./auth");
 
 
@@ -77,4 +78,33 @@ describe("ensureLoggedIn", function () {
     };
     ensureLoggedIn(req, res, next);
   });
+});
+
+describe("ensureAdmin", function () {
+  test("works", function () {
+    expect.assertions(1);
+    const req = {};
+    const res = { locals: { user: { username: "admin", isAdmin: true } } };
+    const next = function (err) {
+      expect(err).toBeFalsy();
+    };
+    ensureAdmin(req, res, next);
+  });
+
+  test("unauth if not admin", function () {
+    expect.assertions(3);
+    const req = {};
+    const res = { 
+      locals: { user: { username: "test", isAdmin: false } },
+      status: jest.fn().mockReturnThis(), // Mock status function
+      json: jest.fn() // Mock json function
+    };
+    const next = jest.fn(); // Mock next function
+
+    ensureAdmin(req, res, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith({ error: "Must be an admin to access." });
+});
 });

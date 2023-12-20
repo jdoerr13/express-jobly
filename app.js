@@ -11,6 +11,7 @@ const { authenticateJWT } = require("./middleware/auth");
 const authRoutes = require("./routes/auth");
 const companiesRoutes = require("./routes/companies");
 const usersRoutes = require("./routes/users");
+const jobsRoutes = require("./routes/jobs");
 
 const morgan = require("morgan");
 
@@ -24,6 +25,7 @@ app.use(authenticateJWT);
 app.use("/auth", authRoutes);
 app.use("/companies", companiesRoutes);
 app.use("/users", usersRoutes);
+app.use("/jobs", jobsRoutes);
 
 
 /** Handle 404 errors -- this matches everything */
@@ -43,8 +45,3 @@ app.use(function (err, req, res, next) {
 });
 
 module.exports = app;
-
-
-//	"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpET0VSUiIsImlzQWRtaW4iOmZhbHNlLCJpYXQiOjE3MDI3NDA3NTd9.3pfkTeonO7tgwOAU4Jpora5z8UQD6aAyU91MeVx_mXY"
-
-//	"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpET0VSUiIsImlzQWRtaW4iOmZhbHNlLCJpYXQiOjE3MDI3NDExMjZ9.fJPth304u83Nw529kioz6gEeiUca6gaXz-vEu6YBIoQ"

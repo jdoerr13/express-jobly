@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 
 const express = require("express");
-const { ensureLoggedIn } = require("../middleware/auth");
+const { ensureLoggedIn, ensureAdmin } = require("../middleware/auth");
 const { BadRequestError } = require("../expressError");
 const User = require("../models/user");
 const { createToken } = require("../helpers/tokens");
@@ -24,10 +24,10 @@ const router = express.Router();
  * This returns the newly created user and an authentication token for them:
  *  {user: { username, firstName, lastName, email, isAdmin }, token }
  *
- * Authorization required: login
+ * Authorization required: updated to admin only 
  **/
 
-router.post("/", ensureLoggedIn, async function (req, res, next) {
+router.post("/", ensureLoggedIn, ensureAdmin, async function (req, res, next) {
   try {
     const validator = jsonschema.validate(req.body, userNewSchema);
     if (!validator.valid) {
@@ -48,10 +48,10 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  *
  * Returns list of all users.
  *
- * Authorization required: login
+ * Authorization required: updated to admin only 
  **/
 
-router.get("/", ensureLoggedIn, async function (req, res, next) {
+router.get("/", ensureLoggedIn, ensureAdmin, async function (req, res, next) {
   try {
     const users = await User.findAll();
     return res.json({ users });
@@ -67,11 +67,15 @@ router.get("/", ensureLoggedIn, async function (req, res, next) {
  *
  * Authorization required: login
  **/
-
+//UPDATE SO ONLY ADMIN OR the user that is logged in can update
 router.get("/:username", ensureLoggedIn, async function (req, res, next) {
   try {
-    const user = await User.get(req.params.username);
-    return res.json({ user });
+    const user = res.locals.user;
+    if (!user.isAdmin && user.username !== req.params.username) {
+      return res.status(403).json({ error: "Access forbidden" });
+    }
+    const userData = await User.get(req.params.username);
+    return res.json({ userData });
   } catch (err) {
     return next(err);
   }
@@ -90,14 +94,19 @@ router.get("/:username", ensureLoggedIn, async function (req, res, next) {
 
 router.patch("/:username", ensureLoggedIn, async function (req, res, next) {
   try {
+    const user = res.locals.user;
+    if (!user.isAdmin && user.username !== req.params.username){
+      return res.status(403).json({ error: "Access forbidden"});
+    }
+
     const validator = jsonschema.validate(req.body, userUpdateSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
 
-    const user = await User.update(req.params.username, req.body);
-    return res.json({ user });
+    const userData = await User.update(req.params.username, req.body);
+    return res.json({ userData });
   } catch (err) {
     return next(err);
   }
@@ -111,6 +120,11 @@ router.patch("/:username", ensureLoggedIn, async function (req, res, next) {
 
 router.delete("/:username", ensureLoggedIn, async function (req, res, next) {
   try {
+    const user = res.locals.user;
+    if (!user.isAdmin && user.username !== req.params.username){
+      return res.status(403).json({ error: "Access forbidden"});
+    }
+
     await User.remove(req.params.username);
     return res.json({ deleted: req.params.username });
   } catch (err) {
@@ -118,5 +132,19 @@ router.delete("/:username", ensureLoggedIn, async function (req, res, next) {
   }
 });
 
+// POST /users/:username/jobs/:id - Apply for a job
+router.post("/:username/jobs/:id", ensureLoggedIn, async function (req, res, next) {
+  try {
+    const user = res.locals.user;
+    if (!user.isAdmin && user.username !== req.params.username){
+      return res.status(403).json({ error: "Access forbidden"});
+    }
+    const jobId = +req.params.id;
+    await User.applyToJob(req.params.username, jobId);
+    return res.json({ applied: jobId });
+  } catch (err) {
+    return next(err);
+  }
+});
 
 module.exports = router;

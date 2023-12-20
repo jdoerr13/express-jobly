@@ -52,8 +52,8 @@ describe("authenticate", function () {
   });
 });
 
-/************************************** register */
 
+/************************************** register */
 describe("register", function () {
   const newUser = {
     username: "new",
@@ -105,8 +105,8 @@ describe("register", function () {
   });
 });
 
-/************************************** findAll */
 
+/************************************** findAll */
 describe("findAll", function () {
   test("works", async function () {
     const users = await User.findAll();
@@ -129,8 +129,8 @@ describe("findAll", function () {
   });
 });
 
-/************************************** get */
 
+/************************************** get */
 describe("get", function () {
   test("works", async function () {
     let user = await User.get("u1");
@@ -140,6 +140,7 @@ describe("get", function () {
       lastName: "U1L",
       email: "u1@email.com",
       isAdmin: false,
+      applications: [],
     });
   });
 
@@ -153,8 +154,8 @@ describe("get", function () {
   });
 });
 
-/************************************** update */
 
+/************************************** update */
 describe("update", function () {
   const updateData = {
     firstName: "NewF",
@@ -209,8 +210,8 @@ describe("update", function () {
   });
 });
 
-/************************************** remove */
 
+/************************************** remove */
 describe("remove", function () {
   test("works", async function () {
     await User.remove("u1");
@@ -222,6 +223,56 @@ describe("remove", function () {
   test("not found if no such user", async function () {
     try {
       await User.remove("nope");
+      fail();
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
+});
+
+
+/************************************** applyToJob */
+describe("applyToJob", function () {
+  let testJobId;
+
+  beforeEach(async function () {
+    // Insert a fake job into the database
+    const jobResult = await db.query(`
+      INSERT INTO jobs (title, salary, equity, company_handle)
+      VALUES ('Test Job', 100000, '0.1', 'c1') 
+      RETURNING id`);
+    testJobId = jobResult.rows[0].id;
+  });
+
+  test("works", async function () {
+    const username = 'u1';
+
+    await User.applyToJob(username, testJobId);
+
+    const result = await db.query(
+      `SELECT username, job_id 
+       FROM applications 
+       WHERE username = $1 AND job_id = $2`,
+      [username, testJobId]
+    );
+    
+    expect(result.rows).toEqual([
+      { username: 'u1', job_id: testJobId }
+    ]);
+  });
+
+  test("not found if no such job", async function () {
+    try {
+      await User.applyToJob('u1', -1); // Non-existent job ID
+      fail();
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
+
+  test("not found if no such user", async function () {
+    try {
+      await User.applyToJob('nope', testJobId); // Non-existent user
       fail();
     } catch (err) {
       expect(err instanceof NotFoundError).toBeTruthy();
